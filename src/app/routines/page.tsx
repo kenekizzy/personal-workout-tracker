@@ -2,10 +2,23 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, Play, Layers, Trash2, Edit3, X, Dumbbell, Check } from 'lucide-react';
+import {
+  Plus,
+  Play,
+  Layers,
+  Trash2,
+  Pencil,
+  X,
+  Dumbbell,
+  Check,
+  ChevronDown,
+  ChevronUp,
+} from 'lucide-react';
 import {
   getAllRoutines,
   createRoutine,
+  updateRoutine,
+  saveRoutineTargets,
   deleteRoutine,
   type HydratedRoutine,
 } from '../../lib/data/routines';
@@ -15,11 +28,11 @@ import { formatWeight, type WeightUnit } from '../../lib/units';
 import { getSetting } from '../../lib/data/settings';
 import type { Exercise } from '../../lib/types';
 
-interface NewRoutineTargetItem {
+interface RoutineTargetFormItem {
   exerciseId: number;
-  targetSets: number;
-  targetReps: number;
-  targetWeight: number;
+  targetSets: string | number;
+  targetReps: string | number;
+  targetWeight: string | number;
 }
 
 export default function RoutinesPage() {
@@ -29,11 +42,14 @@ export default function RoutinesPage() {
   const [unit, setUnit] = useState<WeightUnit>('kg');
   const [loading, setLoading] = useState(true);
 
-  // New Routine Modal
-  const [showCreateModal, setShowCreateModal] = useState(false);
+  // Modal State: 'create' | 'edit' | null
+  const [modalMode, setModalMode] = useState<'create' | 'edit' | null>(null);
+  const [editingRoutineId, setEditingRoutineId] = useState<number | null>(null);
+
+  // Form State
   const [routineName, setRoutineName] = useState('');
   const [routineNotes, setRoutineNotes] = useState('');
-  const [selectedTargets, setSelectedTargets] = useState<NewRoutineTargetItem[]>([]);
+  const [selectedTargets, setSelectedTargets] = useState<RoutineTargetFormItem[]>([]);
 
   const loadData = async () => {
     try {
@@ -61,8 +77,31 @@ export default function RoutinesPage() {
     router.push(`/session?id=${session.id}`);
   };
 
+  const handleOpenCreateModal = () => {
+    setModalMode('create');
+    setEditingRoutineId(null);
+    setRoutineName('');
+    setRoutineNotes('');
+    setSelectedTargets([]);
+  };
+
+  const handleOpenEditModal = (routine: HydratedRoutine) => {
+    setModalMode('edit');
+    setEditingRoutineId(routine.id!);
+    setRoutineName(routine.name);
+    setRoutineNotes(routine.notes || '');
+    setSelectedTargets(
+      routine.targets.map(t => ({
+        exerciseId: t.exerciseId,
+        targetSets: t.targetSets,
+        targetReps: t.targetReps,
+        targetWeight: t.targetWeight,
+      }))
+    );
+  };
+
   const handleDeleteRoutine = async (routineId: number) => {
-    if (confirm('Delete this routine template?')) {
+    if (confirm('Are you sure you want to delete this routine template?')) {
       await deleteRoutine(routineId);
       await loadData();
     }
@@ -71,11 +110,11 @@ export default function RoutinesPage() {
   const handleAddExerciseToRoutine = (exerciseId: number) => {
     setSelectedTargets(prev => [
       ...prev,
-      { exerciseId, targetSets: 3, targetReps: 10, targetWeight: 20 },
+      { exerciseId, targetSets: '3', targetReps: '10', targetWeight: '20' },
     ]);
   };
 
-  const handleUpdateTarget = (index: number, patch: Partial<NewRoutineTargetItem>) => {
+  const handleUpdateTarget = (index: number, patch: Partial<RoutineTargetFormItem>) => {
     setSelectedTargets(prev =>
       prev.map((item, idx) => (idx === index ? { ...item, ...patch } : item))
     );
@@ -89,16 +128,31 @@ export default function RoutinesPage() {
     e.preventDefault();
     if (!routineName.trim() || selectedTargets.length === 0) return;
 
-    await createRoutine(
-      routineName.trim(),
-      routineNotes.trim() || undefined,
-      selectedTargets
-    );
+    // Sanitize string/empty inputs into numbers
+    const sanitizedTargets = selectedTargets.map(t => ({
+      exerciseId: t.exerciseId,
+      targetSets: Math.max(1, parseInt(String(t.targetSets), 10) || 1),
+      targetReps: Math.max(1, parseInt(String(t.targetReps), 10) || 1),
+      targetWeight: Math.max(0, parseFloat(String(t.targetWeight)) || 0),
+    }));
 
-    setRoutineName('');
-    setRoutineNotes('');
-    setSelectedTargets([]);
-    setShowCreateModal(false);
+    if (modalMode === 'edit' && editingRoutineId) {
+      await updateRoutine(
+        editingRoutineId,
+        routineName.trim(),
+        routineNotes.trim() || undefined
+      );
+      await saveRoutineTargets(editingRoutineId, sanitizedTargets);
+    } else {
+      await createRoutine(
+        routineName.trim(),
+        routineNotes.trim() || undefined,
+        sanitizedTargets
+      );
+    }
+
+    setModalMode(null);
+    setEditingRoutineId(null);
     await loadData();
   };
 
@@ -111,7 +165,7 @@ export default function RoutinesPage() {
           <p className="text-xs text-zinc-400 mt-0.5">{routines.length} saved templates</p>
         </div>
         <button
-          onClick={() => setShowCreateModal(true)}
+          onClick={handleOpenCreateModal}
           className="px-3.5 py-2 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black rounded-xl text-xs flex items-center gap-1.5 shadow-lg shadow-emerald-500/20 active:scale-95 transition-all"
         >
           <Plus className="w-4 h-4 stroke-[3]" />
@@ -130,20 +184,36 @@ export default function RoutinesPage() {
           routines.map(r => (
             <div
               key={r.id}
-              className="p-4 rounded-3xl bg-zinc-900/90 border border-zinc-800 space-y-3 shadow-md"
+              className="p-4 rounded-3xl bg-zinc-900/90 border border-zinc-800 space-y-3.5 shadow-md hover:border-zinc-700 transition-all"
             >
               <div className="flex items-start justify-between">
                 <div>
-                  <h3 className="text-base font-black text-white">{r.name}</h3>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-base font-black text-white">{r.name}</h3>
+                    <span className="text-[10px] font-bold px-2 py-0.5 bg-zinc-800 text-zinc-400 rounded-md">
+                      {r.targets.length} exercises
+                    </span>
+                  </div>
                   {r.notes && <p className="text-xs text-zinc-400 mt-0.5">{r.notes}</p>}
                 </div>
-                <button
-                  onClick={() => handleDeleteRoutine(r.id!)}
-                  className="p-1.5 text-zinc-500 hover:text-rose-400 rounded-lg hover:bg-zinc-800"
-                  title="Delete routine"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+
+                {/* Edit & Delete Actions */}
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => handleOpenEditModal(r)}
+                    className="p-2 text-zinc-400 hover:text-emerald-400 rounded-xl hover:bg-zinc-800 transition-colors"
+                    title="Edit routine"
+                  >
+                    <Pencil className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => handleDeleteRoutine(r.id!)}
+                    className="p-2 text-zinc-400 hover:text-rose-400 rounded-xl hover:bg-zinc-800 transition-colors"
+                    title="Delete routine"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
 
               {/* Target exercises list */}
@@ -176,14 +246,23 @@ export default function RoutinesPage() {
         )}
       </div>
 
-      {/* Create New Routine Modal */}
-      {showCreateModal && (
+      {/* Create / Edit Routine Modal */}
+      {modalMode && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="w-full max-w-sm max-h-[85vh] flex flex-col bg-zinc-900 border border-zinc-800 rounded-3xl p-5 shadow-2xl">
             <div className="flex items-center justify-between mb-3">
-              <h2 className="text-lg font-black text-white">Create Routine</h2>
+              <div>
+                <h2 className="text-lg font-black text-white">
+                  {modalMode === 'edit' ? 'Edit Routine' : 'Create Routine'}
+                </h2>
+                <p className="text-[11px] text-zinc-400">
+                  {modalMode === 'edit'
+                    ? 'Modify routine targets and exercises'
+                    : 'Set up your workout template'}
+                </p>
+              </div>
               <button
-                onClick={() => setShowCreateModal(false)}
+                onClick={() => setModalMode(null)}
                 className="p-1.5 text-zinc-400 hover:text-white rounded-lg"
               >
                 <X className="w-5 h-5" />
@@ -201,7 +280,7 @@ export default function RoutinesPage() {
                   placeholder="e.g. Upper Body Power"
                   value={routineName}
                   onChange={e => setRoutineName(e.target.value)}
-                  className="w-full px-3.5 py-2 bg-zinc-950 border border-zinc-800 rounded-xl text-xs text-white focus:outline-none focus:border-emerald-500"
+                  className="w-full px-3.5 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-xs text-white focus:outline-none focus:border-emerald-500"
                 />
               </div>
 
@@ -214,7 +293,7 @@ export default function RoutinesPage() {
                   placeholder="e.g. Strength focus: 3-5 minute rests"
                   value={routineNotes}
                   onChange={e => setRoutineNotes(e.target.value)}
-                  className="w-full px-3.5 py-2 bg-zinc-950 border border-zinc-800 rounded-xl text-xs text-white focus:outline-none focus:border-emerald-500"
+                  className="w-full px-3.5 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-xs text-white focus:outline-none focus:border-emerald-500"
                 />
               </div>
 
@@ -231,61 +310,94 @@ export default function RoutinesPage() {
                   return (
                     <div
                       key={idx}
-                      className="p-3 bg-zinc-950 rounded-2xl border border-zinc-800 space-y-2 text-xs"
+                      className="p-3 bg-zinc-950 rounded-2xl border border-zinc-800 space-y-2.5 text-xs shadow-inner"
                     >
                       <div className="flex items-center justify-between">
-                        <span className="font-bold text-white">{ex?.name || 'Exercise'}</span>
+                        <div className="flex items-center gap-1.5">
+                          <span className="w-5 h-5 bg-zinc-800 text-zinc-400 font-mono text-[10px] rounded-md flex items-center justify-center font-bold">
+                            {idx + 1}
+                          </span>
+                          <span className="font-bold text-white">{ex?.name || 'Exercise'}</span>
+                        </div>
                         <button
                           type="button"
                           onClick={() => handleRemoveTarget(idx)}
-                          className="text-zinc-500 hover:text-rose-400"
+                          className="p-1 text-zinc-500 hover:text-rose-400 rounded-md transition-colors"
+                          title="Remove exercise"
                         >
                           <X className="w-4 h-4" />
                         </button>
                       </div>
 
                       <div className="grid grid-cols-3 gap-2">
+                        {/* Sets input - cleanable */}
                         <div>
-                          <span className="text-[10px] text-zinc-500 block mb-0.5">Sets</span>
+                          <span className="text-[10px] font-bold text-zinc-400 block mb-0.5 uppercase tracking-wider">
+                            Sets
+                          </span>
                           <input
-                            type="number"
-                            min="1"
+                            type="text"
+                            inputMode="numeric"
                             value={t.targetSets}
-                            onChange={e =>
-                              handleUpdateTarget(idx, {
-                                targetSets: parseInt(e.target.value, 10) || 1,
-                              })
-                            }
-                            className="w-full px-2 py-1 bg-zinc-900 border border-zinc-800 rounded-lg text-white font-mono text-center"
+                            onChange={e => {
+                              const val = e.target.value.replace(/[^0-9]/g, '');
+                              handleUpdateTarget(idx, { targetSets: val });
+                            }}
+                            onBlur={() => {
+                              if (!t.targetSets || Number(t.targetSets) < 1) {
+                                handleUpdateTarget(idx, { targetSets: 1 });
+                              }
+                            }}
+                            placeholder="Sets"
+                            className="w-full px-2 py-1.5 bg-zinc-900 border border-zinc-800 rounded-lg text-white font-mono text-center focus:outline-none focus:border-emerald-500"
                           />
                         </div>
+
+                        {/* Reps input - cleanable */}
                         <div>
-                          <span className="text-[10px] text-zinc-500 block mb-0.5">Reps</span>
+                          <span className="text-[10px] font-bold text-zinc-400 block mb-0.5 uppercase tracking-wider">
+                            Reps
+                          </span>
                           <input
-                            type="number"
-                            min="1"
+                            type="text"
+                            inputMode="numeric"
                             value={t.targetReps}
-                            onChange={e =>
-                              handleUpdateTarget(idx, {
-                                targetReps: parseInt(e.target.value, 10) || 1,
-                              })
-                            }
-                            className="w-full px-2 py-1 bg-zinc-900 border border-zinc-800 rounded-lg text-white font-mono text-center"
+                            onChange={e => {
+                              const val = e.target.value.replace(/[^0-9]/g, '');
+                              handleUpdateTarget(idx, { targetReps: val });
+                            }}
+                            onBlur={() => {
+                              if (!t.targetReps || Number(t.targetReps) < 1) {
+                                handleUpdateTarget(idx, { targetReps: 1 });
+                              }
+                            }}
+                            placeholder="Reps"
+                            className="w-full px-2 py-1.5 bg-zinc-900 border border-zinc-800 rounded-lg text-white font-mono text-center focus:outline-none focus:border-emerald-500"
                           />
                         </div>
+
+                        {/* Weight input - cleanable */}
                         <div>
-                          <span className="text-[10px] text-zinc-500 block mb-0.5">Kg</span>
+                          <span className="text-[10px] font-bold text-zinc-400 block mb-0.5 uppercase tracking-wider">
+                            {unit.toUpperCase()}
+                          </span>
                           <input
-                            type="number"
-                            min="0"
-                            step="2.5"
+                            type="text"
+                            inputMode="decimal"
                             value={t.targetWeight}
-                            onChange={e =>
-                              handleUpdateTarget(idx, {
-                                targetWeight: parseFloat(e.target.value) || 0,
-                              })
-                            }
-                            className="w-full px-2 py-1 bg-zinc-900 border border-zinc-800 rounded-lg text-white font-mono text-center"
+                            onChange={e => {
+                              const val = e.target.value.replace(/[^0-9.]/g, '');
+                              const parts = val.split('.');
+                              const cleanVal = parts.length > 2 ? `${parts[0]}.${parts.slice(1).join('')}` : val;
+                              handleUpdateTarget(idx, { targetWeight: cleanVal });
+                            }}
+                            onBlur={() => {
+                              if (t.targetWeight === '' || isNaN(Number(t.targetWeight))) {
+                                handleUpdateTarget(idx, { targetWeight: 0 });
+                              }
+                            }}
+                            placeholder="Kg"
+                            className="w-full px-2 py-1.5 bg-zinc-900 border border-zinc-800 rounded-lg text-white font-mono text-center focus:outline-none focus:border-emerald-500"
                           />
                         </div>
                       </div>
@@ -303,7 +415,7 @@ export default function RoutinesPage() {
                       }
                     }}
                     defaultValue=""
-                    className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-xl text-xs text-zinc-300 focus:outline-none focus:border-emerald-500"
+                    className="w-full px-3.5 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-xs text-zinc-300 focus:outline-none focus:border-emerald-500 cursor-pointer"
                   >
                     <option value="" disabled>
                       + Add Exercise to Template...
@@ -320,17 +432,17 @@ export default function RoutinesPage() {
               <div className="grid grid-cols-2 gap-2 pt-2">
                 <button
                   type="button"
-                  onClick={() => setShowCreateModal(false)}
-                  className="py-2.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-bold text-xs rounded-xl"
+                  onClick={() => setModalMode(null)}
+                  className="py-2.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-bold text-xs rounded-xl transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={selectedTargets.length === 0}
-                  className="py-2.5 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black text-xs rounded-xl shadow-lg shadow-emerald-500/20 disabled:opacity-50"
+                  className="py-2.5 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black text-xs rounded-xl shadow-lg shadow-emerald-500/20 disabled:opacity-50 transition-all"
                 >
-                  Save Routine
+                  {modalMode === 'edit' ? 'Update Routine' : 'Save Routine'}
                 </button>
               </div>
             </form>
