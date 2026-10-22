@@ -248,9 +248,10 @@ export default function RoutinesPage() {
 
       {/* Create / Edit Routine Modal */}
       {modalMode && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="w-full max-w-sm max-h-[85vh] flex flex-col bg-zinc-900 border border-zinc-800 rounded-3xl p-5 shadow-2xl">
-            <div className="flex items-center justify-between mb-3">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="w-full max-w-sm max-h-[90dvh] sm:max-h-[85vh] flex flex-col bg-zinc-900 border border-zinc-800 rounded-3xl p-4 sm:p-5 shadow-2xl overflow-hidden">
+            {/* Modal Header (Fixed) */}
+            <div className="flex items-center justify-between pb-3 border-b border-zinc-800 shrink-0">
               <div>
                 <h2 className="text-lg font-black text-white">
                   {modalMode === 'edit' ? 'Edit Routine' : 'Create Routine'}
@@ -263,14 +264,16 @@ export default function RoutinesPage() {
               </div>
               <button
                 onClick={() => setModalMode(null)}
-                className="p-1.5 text-zinc-400 hover:text-white rounded-lg"
+                className="p-1.5 text-zinc-400 hover:text-white rounded-lg hover:bg-zinc-800 transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={handleSaveRoutine} className="flex-1 overflow-y-auto space-y-4 pr-1">
-              <div>
+            <form onSubmit={handleSaveRoutine} className="flex flex-col flex-1 min-h-0">
+              {/* Scrollable Form Body */}
+              <div className="flex-1 min-h-0 overflow-y-auto py-3 space-y-4 pr-1 overscroll-contain touch-scroll">
+                <div>
                 <label className="block text-xs font-bold text-zinc-400 uppercase tracking-wider mb-1">
                   Routine Name
                 </label>
@@ -428,8 +431,10 @@ export default function RoutinesPage() {
                   </select>
                 </div>
               </div>
+              </div>
 
-              <div className="grid grid-cols-2 gap-2 pt-2">
+              {/* Fixed Sticky Footer Actions */}
+              <div className="grid grid-cols-2 gap-2 pt-3 border-t border-zinc-800 shrink-0 bg-zinc-900 mt-auto">
                 <button
                   type="button"
                   onClick={() => setModalMode(null)}

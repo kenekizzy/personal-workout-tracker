@@ -425,20 +425,20 @@ function SessionLoggerContent() {
 
       {/* Add Exercise Modal */}
       {showAddExerciseModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="w-full max-w-sm max-h-[80vh] flex flex-col bg-zinc-900 border border-zinc-800 rounded-3xl p-5 shadow-2xl">
-            <div className="flex items-center justify-between mb-3">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="w-full max-w-sm max-h-[88dvh] sm:max-h-[80vh] flex flex-col bg-zinc-900 border border-zinc-800 rounded-3xl p-5 shadow-2xl overflow-hidden">
+            <div className="flex items-center justify-between pb-3 border-b border-zinc-800 shrink-0 mb-3">
               <h2 className="text-lg font-black text-white">Add Exercise</h2>
               <button
                 onClick={() => setShowAddExerciseModal(false)}
-                className="p-1.5 text-zinc-400 hover:text-white rounded-lg"
+                className="p-1.5 text-zinc-400 hover:text-white rounded-lg hover:bg-zinc-800 transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {/* Search filter */}
-            <div className="relative mb-3">
+            <div className="relative mb-3 shrink-0">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
               <input
                 type="text"
@@ -450,7 +450,7 @@ function SessionLoggerContent() {
             </div>
 
             {/* Exercise List */}
-            <div className="flex-1 overflow-y-auto space-y-1.5 pr-1 min-h-[200px]">
+            <div className="flex-1 min-h-0 overflow-y-auto space-y-1.5 pr-1 overscroll-contain touch-scroll">
               {filteredExercisesToAdd.map(ex => (
                 <button
                   key={ex.id}

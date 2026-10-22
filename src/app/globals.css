@@ -43,3 +43,11 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #3b3f54;
 }
+
+/* Momentum scrolling for mobile modals */
+.touch-scroll {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+}
+

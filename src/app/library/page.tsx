@@ -187,19 +187,19 @@ export default function LibraryPage() {
 
       {/* Add Custom Exercise Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="w-full max-w-sm bg-zinc-900 border border-zinc-800 rounded-3xl p-6 shadow-2xl">
-            <div className="flex items-center justify-between mb-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="w-full max-w-sm max-h-[90dvh] sm:max-h-[85vh] flex flex-col bg-zinc-900 border border-zinc-800 rounded-3xl p-5 shadow-2xl overflow-hidden">
+            <div className="flex items-center justify-between pb-3 border-b border-zinc-800 shrink-0">
               <h2 className="text-lg font-black text-white">New Exercise</h2>
               <button
                 onClick={() => setShowAddModal(false)}
-                className="p-1.5 text-zinc-400 hover:text-white rounded-lg"
+                className="p-1.5 text-zinc-400 hover:text-white rounded-lg hover:bg-zinc-800 transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={handleCreateExercise} className="space-y-4">
+            <form onSubmit={handleCreateExercise} className="flex-1 min-h-0 overflow-y-auto py-3 space-y-4 pr-1 overscroll-contain touch-scroll">
               <div>
                 <label className="block text-xs font-bold text-zinc-400 uppercase tracking-wider mb-1">
                   Exercise Name
