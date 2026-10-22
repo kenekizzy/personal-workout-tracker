@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="100%" height="100%" style="background:#13151b;border-radius:12px;">
+  <style>
+    @keyframes exerciseLoop {
+      0% { transform: translateY(-15px); }
+      50% { transform: translateY(15px); }
+      100% { transform: translateY(-15px); }
+    }
+    .anim-bar {
+      animation: exerciseLoop 2.4s ease-in-out infinite;
+      transform-origin: center;
+    }
+    .pulse-glow {
+      animation: glowPulse 2.4s ease-in-out infinite;
+    }
+    @keyframes glowPulse {
+      0%, 100% { opacity: 0.3; }
+      50% { opacity: 0.8; }
+    }
+  </style>
+  <defs>
+    <radialGradient id="grad-Bench Press" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#13151b" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="200" height="200" fill="#13151b"/>
+  <circle cx="100" cy="100" r="70" fill="url(#grad-Bench Press)" class="pulse-glow"/>
+  <!-- Base Bench/Platform -->
+  <line x1="30" y1="160" x2="170" y2="160" stroke="#2a2e39" stroke-width="4" stroke-linecap="round"/>
+  <!-- Figure -->
+  <g stroke="#60a5fa" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <line x1="60" y1="130" x2="140" y2="130"/><circle cx="80" cy="120" r="10"/><path d="M85 130 L115 130 L130 150"/>
+  </g>
+  <!-- Moving weights/bar -->
+  <g class="anim-bar" stroke="#3b82f6" stroke-width="5" stroke-linecap="round" fill="none">
+    <line x1="50" y1="90" x2="150" y2="90"/>
+    <circle cx="50" cy="90" r="8" fill="#3b82f6"/>
+    <circle cx="150" cy="90" r="8" fill="#3b82f6"/>
+  </g>
+  <text x="100" y="185" fill="#8e95a5" font-family="system-ui, sans-serif" font-size="11" font-weight="600" text-anchor="middle" letter-spacing="1">
+    BENCH PRESS
+  </text>
+</svg>
