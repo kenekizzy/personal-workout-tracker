@@ -38,10 +38,14 @@ export function Navigation() {
     { label: 'Settings', href: '/settings', icon: Settings },
   ];
 
+  if (pathname.startsWith('/session')) {
+    return null;
+  }
+
   return (
     <>
       {/* Floating Active Workout Banner if user navigated away from active session */}
-      {activeSessionId && !pathname.startsWith('/session') && (
+      {activeSessionId && (
         <div className="fixed bottom-20 left-4 right-4 z-40 max-w-lg mx-auto">
           <Link
             href={`/session?id=${activeSessionId}`}

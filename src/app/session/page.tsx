@@ -15,6 +15,10 @@ import {
   Check,
   X,
   Search,
+  Download,
+  Copy,
+  FileDown,
+  BookmarkPlus,
 } from 'lucide-react';
 import {
   getHydratedSession,
@@ -32,6 +36,12 @@ import {
   deleteSet,
   getLastTimeSets,
 } from '../../lib/data/sets';
+import {
+  createRoutineFromSession,
+  exportRoutineToJson,
+  formatRoutineAsText,
+  getRoutineById,
+} from '../../lib/data/routines';
 import { getAllExercises } from '../../lib/data/exercises';
 import { getSetting } from '../../lib/data/settings';
 import { formatWeight, type WeightUnit } from '../../lib/units';
@@ -70,8 +80,22 @@ function SessionLoggerContent() {
   const [allAvailableExercises, setAllAvailableExercises] = useState<Exercise[]>([]);
   const [exerciseSearchQuery, setExerciseSearchQuery] = useState('');
 
+  // Export Routine modal state
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [routineTemplateName, setRoutineTemplateName] = useState('');
+
+  // Toast feedback state
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
   // Workout duration stopwatch
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
+
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => {
+      setToastMessage(prev => (prev === msg ? null : prev));
+    }, 3000);
+  };
 
   const reloadSession = useCallback(async () => {
     if (!sessionId) return;
@@ -83,6 +107,9 @@ function SessionLoggerContent() {
       }
       setSession(hydrated.session);
       setExercises(hydrated.exercises);
+      if (!routineTemplateName) {
+        setRoutineTemplateName(hydrated.session.notes || 'My Workout Routine');
+      }
 
       // Load "last time" sets for all exercises in this session
       const ltMap: Record<number, SetRowType[]> = {};
@@ -96,7 +123,7 @@ function SessionLoggerContent() {
     } catch (err) {
       console.error('Error loading session:', err);
     }
-  }, [sessionId]);
+  }, [sessionId, routineTemplateName]);
 
   useEffect(() => {
     if (!sessionId) return;
@@ -208,6 +235,60 @@ function SessionLoggerContent() {
     }
   };
 
+  // Export current session as routine
+  const handleSaveAsRoutineTemplate = async () => {
+    if (!sessionId) return;
+    try {
+      const routineId = await createRoutineFromSession(
+        sessionId,
+        routineTemplateName.trim() || undefined
+      );
+      showToast('Saved workout as a routine template!');
+      setShowExportModal(false);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to save routine.';
+      alert(msg);
+    }
+  };
+
+  const handleDownloadRoutineJson = async () => {
+    if (!sessionId) return;
+    try {
+      const routineId = await createRoutineFromSession(
+        sessionId,
+        routineTemplateName.trim() || undefined
+      );
+      const routine = await getRoutineById(routineId);
+      if (routine) {
+        exportRoutineToJson(routine);
+        showToast('Downloaded routine JSON!');
+      }
+      setShowExportModal(false);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to export routine.';
+      alert(msg);
+    }
+  };
+
+  const handleCopyRoutineSummary = async () => {
+    if (!sessionId) return;
+    try {
+      const routineId = await createRoutineFromSession(
+        sessionId,
+        routineTemplateName.trim() || undefined
+      );
+      const routine = await getRoutineById(routineId);
+      if (routine && typeof navigator !== 'undefined' && navigator.clipboard) {
+        const text = formatRoutineAsText(routine, unit);
+        await navigator.clipboard.writeText(text);
+        showToast('Workout routine plan copied to clipboard!');
+      }
+      setShowExportModal(false);
+    } catch {
+      showToast('Could not copy routine text.');
+    }
+  };
+
   const formatTimer = (sec: number) => {
     const mins = Math.floor(sec / 60);
     const s = sec % 60;
@@ -231,12 +312,21 @@ function SessionLoggerContent() {
   });
 
   return (
-    <div className="space-y-5 animate-in fade-in duration-300">
+    <div className="space-y-5 animate-in fade-in duration-300 pb-16">
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div className="fixed top-5 left-1/2 -translate-x-1/2 z-50 bg-emerald-500 text-zinc-950 font-black text-xs px-4 py-2.5 rounded-full shadow-2xl flex items-center gap-2 animate-in fade-in slide-in-from-top-4 duration-200">
+          <Check className="w-4 h-4 stroke-[3]" />
+          <span>{toastMessage}</span>
+        </div>
+      )}
+
       {/* Top Session Bar */}
       <div className="flex items-center justify-between pt-2">
         <Link
           href="/"
           className="p-2 text-zinc-400 hover:text-white rounded-xl bg-zinc-900 border border-zinc-800"
+          title="Return to Home (workout stays active)"
         >
           <ArrowLeft className="w-5 h-5" />
         </Link>
@@ -250,25 +340,43 @@ function SessionLoggerContent() {
           <WakeLockManager enabled={true} />
         </div>
 
-        <button
-          onClick={handleDiscardWorkout}
-          className="p-2 text-zinc-500 hover:text-rose-400 rounded-xl bg-zinc-900 border border-zinc-800 transition-colors"
-          title="Discard workout"
-        >
-          <Trash2 className="w-5 h-5" />
-        </button>
+        <div className="flex items-center gap-1.5">
+          <button
+            onClick={() => setShowExportModal(true)}
+            className="p-2 text-zinc-400 hover:text-emerald-400 rounded-xl bg-zinc-900 border border-zinc-800 transition-colors"
+            title="Export routine from this workout"
+          >
+            <Download className="w-5 h-5" />
+          </button>
+          <button
+            onClick={handleDiscardWorkout}
+            className="p-2 text-zinc-500 hover:text-rose-400 rounded-xl bg-zinc-900 border border-zinc-800 transition-colors"
+            title="Discard workout"
+          >
+            <Trash2 className="w-5 h-5" />
+          </button>
+        </div>
       </div>
 
-      {/* Session Title */}
-      <div>
-        <p className="text-xs font-bold uppercase tracking-wider text-emerald-400">Active Workout</p>
-        <h1 className="text-2xl font-black text-white tracking-tight">
+      {/* Session Title Header */}
+      <div className="space-y-1">
+        <div className="flex items-center justify-between">
+          <p className="text-xs font-bold uppercase tracking-wider text-emerald-400">Active Workout</p>
+          <button
+            onClick={() => setShowExportModal(true)}
+            className="text-xs font-bold text-zinc-400 hover:text-emerald-400 flex items-center gap-1 transition-colors"
+          >
+            <Download className="w-3.5 h-3.5" />
+            <span>Export Routine</span>
+          </button>
+        </div>
+        <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight break-words">
           {session?.notes || 'Gym Workout'}
         </h1>
       </div>
 
       {/* Exercises in Session */}
-      <div className="space-y-6">
+      <div className="space-y-5">
         {exercises.length === 0 ? (
           <div className="p-8 rounded-3xl bg-zinc-900/40 border border-dashed border-zinc-800 text-center space-y-3">
             <p className="text-xs text-zinc-400">No exercises added to this workout yet.</p>
@@ -287,30 +395,30 @@ function SessionLoggerContent() {
             return (
               <div
                 key={se.id}
-                className="p-4 rounded-3xl bg-zinc-900/70 border border-zinc-800/80 space-y-3.5 shadow-lg"
+                className="p-3.5 sm:p-4 rounded-3xl bg-zinc-900/80 border border-zinc-800/80 space-y-3 shadow-lg"
               >
-                {/* Exercise Card Header */}
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
+                {/* Exercise Card Header: Distortion-free layout */}
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0 flex-1">
                     <Link
                       href={`/exercise?id=${se.exerciseId}`}
-                      className="text-sm font-black text-white hover:text-emerald-400 flex items-center gap-1.5 group"
+                      className="text-sm sm:text-base font-black text-white hover:text-emerald-400 inline-flex items-center gap-1.5 group break-words"
                     >
                       <span>{ex?.name}</span>
-                      <ExternalLink className="w-3.5 h-3.5 text-zinc-500 group-hover:text-emerald-400" />
+                      <ExternalLink className="w-3.5 h-3.5 text-zinc-500 group-hover:text-emerald-400 shrink-0" />
                     </Link>
                   </div>
 
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-1.5 shrink-0">
                     {/* Status Badge */}
                     {se.finished ? (
                       se.achieved ? (
-                        <span className="flex items-center gap-1 text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                        <span className="flex items-center gap-1 text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 whitespace-nowrap">
                           <CheckCircle2 className="w-3 h-3 text-emerald-400" />
                           Achieved
                         </span>
                       ) : (
-                        <span className="flex items-center gap-1 text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30">
+                        <span className="flex items-center gap-1 text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30 whitespace-nowrap">
                           <XCircle className="w-3 h-3 text-rose-400" />
                           Missed
                         </span>
@@ -319,15 +427,15 @@ function SessionLoggerContent() {
 
                     <button
                       onClick={() => handleRemoveExercise(se.id!)}
-                      className="p-1.5 text-zinc-400 hover:text-rose-400 rounded-lg hover:bg-zinc-800"
+                      className="p-1.5 text-zinc-400 hover:text-rose-400 rounded-lg hover:bg-zinc-800 transition-colors"
                       title="Remove exercise"
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
+                      <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
 
-                {/* Set Rows */}
+                {/* Set Rows: Clean, responsive, distortion-free */}
                 <div className="space-y-2">
                   {se.sets.map((set, setIdx) => {
                     const lastTime = pastSets[setIdx];
@@ -374,7 +482,7 @@ function SessionLoggerContent() {
         )}
       </div>
 
-      {/* Global Actions */}
+      {/* Global Workout Action Buttons */}
       <div className="pt-2 space-y-2.5">
         <button
           onClick={() => setShowAddExerciseModal(true)}
@@ -392,6 +500,94 @@ function SessionLoggerContent() {
           <span>Finish Workout</span>
         </button>
       </div>
+
+      {/* Export Routine Modal */}
+      {showExportModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="w-full max-w-sm bg-zinc-900 border border-zinc-800 rounded-3xl p-5 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between pb-2 border-b border-zinc-800">
+              <h2 className="text-base font-black text-white">Export Workout Routine</h2>
+              <button
+                onClick={() => setShowExportModal(false)}
+                className="p-1.5 text-zinc-400 hover:text-white rounded-lg hover:bg-zinc-800"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <p className="text-xs text-zinc-300 leading-relaxed">
+              Export this workout session as a reusable routine template, download as JSON, or copy as a formatted text plan.
+            </p>
+
+            <div>
+              <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-wider mb-1">
+                Routine Template Name
+              </label>
+              <input
+                type="text"
+                value={routineTemplateName}
+                onChange={e => setRoutineTemplateName(e.target.value)}
+                placeholder="e.g. My Push Day Routine"
+                className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-xl text-xs text-white focus:outline-none focus:border-emerald-500"
+              />
+            </div>
+
+            <div className="space-y-2 pt-1">
+              <button
+                onClick={handleSaveAsRoutineTemplate}
+                className="w-full p-3 rounded-2xl bg-zinc-950 hover:bg-zinc-850 border border-zinc-800 flex items-center gap-3 text-left transition-colors group"
+              >
+                <div className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-400 group-hover:bg-emerald-500/20 transition-colors">
+                  <BookmarkPlus className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold text-white">Save as Routine Template</h4>
+                  <p className="text-[10px] text-zinc-400">
+                    Adds this workout to your saved templates in Routines
+                  </p>
+                </div>
+              </button>
+
+              <button
+                onClick={handleDownloadRoutineJson}
+                className="w-full p-3 rounded-2xl bg-zinc-950 hover:bg-zinc-850 border border-zinc-800 flex items-center gap-3 text-left transition-colors group"
+              >
+                <div className="p-2.5 rounded-xl bg-teal-500/10 text-teal-400 group-hover:bg-teal-500/20 transition-colors">
+                  <FileDown className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold text-white">Download Routine JSON</h4>
+                  <p className="text-[10px] text-zinc-400">
+                    Export a standalone .json routine file for backup/sharing
+                  </p>
+                </div>
+              </button>
+
+              <button
+                onClick={handleCopyRoutineSummary}
+                className="w-full p-3 rounded-2xl bg-zinc-950 hover:bg-zinc-850 border border-zinc-800 flex items-center gap-3 text-left transition-colors group"
+              >
+                <div className="p-2.5 rounded-xl bg-sky-500/10 text-sky-400 group-hover:bg-sky-500/20 transition-colors">
+                  <Copy className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold text-white">Copy Routine Summary</h4>
+                  <p className="text-[10px] text-zinc-400">
+                    Copies formatted text workout plan to clipboard
+                  </p>
+                </div>
+              </button>
+            </div>
+
+            <button
+              onClick={() => setShowExportModal(false)}
+              className="w-full py-2.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-bold text-xs rounded-xl transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Rest Timer Floating Banner */}
       {showRestTimer && (

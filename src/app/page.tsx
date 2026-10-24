@@ -278,11 +278,11 @@ export default function HomePage() {
               className="p-4 rounded-3xl bg-zinc-900/90 border border-zinc-800/90 hover:border-zinc-700 transition-all flex flex-col justify-between space-y-3 shadow-md group"
             >
               <div>
-                <div className="flex items-center justify-between">
-                  <h4 className="text-sm font-black text-white group-hover:text-emerald-400 transition-colors">
+                <div className="flex items-center justify-between gap-2">
+                  <h4 className="text-sm font-black text-white group-hover:text-emerald-400 transition-colors truncate min-w-0">
                     {r.name}
                   </h4>
-                  <span className="text-[10px] font-bold px-2 py-0.5 bg-zinc-800 text-zinc-400 rounded-md">
+                  <span className="text-[10px] font-bold px-2 py-0.5 bg-zinc-800 text-zinc-400 rounded-md shrink-0 whitespace-nowrap">
                     {r.targets.length} moves
                   </span>
                 </div>
