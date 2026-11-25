@@ -3,56 +3,89 @@ import type { Exercise, Routine, RoutineTarget } from './types';
 
 export const STARTER_EXERCISES: Omit<Exercise, 'id'>[] = [
   // Chest
-  { name: 'Barbell Bench Press', bodyPart: 'Chest', equipment: 'barbell', animationFile: 'bench_press.svg' },
-  { name: 'Incline Dumbbell Press', bodyPart: 'Chest', equipment: 'dumbbell', animationFile: 'incline_dumbbell_press.svg' },
-  { name: 'Dips', bodyPart: 'Chest', equipment: 'bodyweight', animationFile: 'dips.svg' },
-  { name: 'Cable Crossover', bodyPart: 'Chest', equipment: 'cable', animationFile: 'cable_crossover.svg' },
-  { name: 'Push-up', bodyPart: 'Chest', equipment: 'bodyweight', animationFile: 'push_up.svg' },
-  { name: 'Dumbbell Chest Fly', bodyPart: 'Chest', equipment: 'dumbbell', animationFile: 'dumbbell_fly.svg' },
+  { name: 'Barbell Bench Press', bodyPart: 'Chest', equipment: 'barbell', animationFile: 'bench_press.gif' },
+  { name: 'Incline Dumbbell Press', bodyPart: 'Chest', equipment: 'dumbbell', animationFile: 'incline_dumbbell_press.gif' },
+  { name: 'Dips', bodyPart: 'Chest', equipment: 'bodyweight', animationFile: 'dips.gif' },
+  { name: 'Cable Crossover', bodyPart: 'Chest', equipment: 'cable', animationFile: 'cable_crossover.gif' },
+  { name: 'Push-up', bodyPart: 'Chest', equipment: 'bodyweight', animationFile: 'push_up.gif' },
+  { name: 'Dumbbell Chest Fly', bodyPart: 'Chest', equipment: 'dumbbell', animationFile: 'dumbbell_fly.gif' },
 
   // Back
-  { name: 'Barbell Deadlift', bodyPart: 'Back', equipment: 'barbell', animationFile: 'deadlift.svg' },
-  { name: 'Pull-up', bodyPart: 'Back', equipment: 'bodyweight', animationFile: 'pull_up.svg' },
-  { name: 'Barbell Bent-Over Row', bodyPart: 'Back', equipment: 'barbell', animationFile: 'barbell_row.svg' },
-  { name: 'Lat Pulldown', bodyPart: 'Back', equipment: 'cable', animationFile: 'lat_pulldown.svg' },
-  { name: 'Seated Cable Row', bodyPart: 'Back', equipment: 'cable', animationFile: 'cable_row.svg' },
-  { name: 'Face Pull', bodyPart: 'Back', equipment: 'cable', animationFile: 'face_pull.svg' },
-  { name: 'Dumbbell Single-Arm Row', bodyPart: 'Back', equipment: 'dumbbell', animationFile: 'dumbbell_row.svg' },
+  { name: 'Barbell Deadlift', bodyPart: 'Back', equipment: 'barbell', animationFile: 'deadlift.gif' },
+  { name: 'Pull-up', bodyPart: 'Back', equipment: 'bodyweight', animationFile: 'pull_up.gif' },
+  { name: 'Barbell Bent-Over Row', bodyPart: 'Back', equipment: 'barbell', animationFile: 'barbell_row.gif' },
+  { name: 'Lat Pulldown', bodyPart: 'Back', equipment: 'cable', animationFile: 'lat_pulldown.gif' },
+  { name: 'Seated Cable Row', bodyPart: 'Back', equipment: 'cable', animationFile: 'cable_row.gif' },
+  { name: 'Face Pull', bodyPart: 'Back', equipment: 'cable', animationFile: 'face_pull.gif' },
+  { name: 'Dumbbell Single-Arm Row', bodyPart: 'Back', equipment: 'dumbbell', animationFile: 'dumbbell_row.gif' },
 
   // Shoulders
-  { name: 'Overhead Barbell Press', bodyPart: 'Shoulders', equipment: 'barbell', animationFile: 'overhead_press.svg' },
-  { name: 'Dumbbell Lateral Raise', bodyPart: 'Shoulders', equipment: 'dumbbell', animationFile: 'lateral_raise.svg' },
-  { name: 'Arnold Press', bodyPart: 'Shoulders', equipment: 'dumbbell', animationFile: 'arnold_press.svg' },
-  { name: 'Cable Lateral Raise', bodyPart: 'Shoulders', equipment: 'cable', animationFile: 'cable_lateral_raise.svg' },
-  { name: 'Reverse Pec Deck Fly', bodyPart: 'Shoulders', equipment: 'machine', animationFile: 'reverse_fly.svg' },
+  { name: 'Overhead Barbell Press', bodyPart: 'Shoulders', equipment: 'barbell', animationFile: 'overhead_press.gif' },
+  { name: 'Dumbbell Lateral Raise', bodyPart: 'Shoulders', equipment: 'dumbbell', animationFile: 'lateral_raise.gif' },
+  { name: 'Arnold Press', bodyPart: 'Shoulders', equipment: 'dumbbell', animationFile: 'arnold_press.gif' },
+  { name: 'Cable Lateral Raise', bodyPart: 'Shoulders', equipment: 'cable', animationFile: 'cable_lateral_raise.gif' },
+  { name: 'Reverse Pec Deck Fly', bodyPart: 'Shoulders', equipment: 'machine', animationFile: 'reverse_fly.gif' },
 
   // Legs
-  { name: 'Barbell Back Squat', bodyPart: 'Legs', equipment: 'barbell', animationFile: 'squat.svg' },
-  { name: 'Romanian Deadlift', bodyPart: 'Legs', equipment: 'barbell', animationFile: 'romanian_deadlift.svg' },
-  { name: 'Leg Press', bodyPart: 'Legs', equipment: 'machine', animationFile: 'leg_press.svg' },
-  { name: 'Bulgarian Split Squat', bodyPart: 'Legs', equipment: 'dumbbell', animationFile: 'split_squat.svg' },
-  { name: 'Lying Leg Curl', bodyPart: 'Legs', equipment: 'machine', animationFile: 'leg_curl.svg' },
-  { name: 'Leg Extension', bodyPart: 'Legs', equipment: 'machine', animationFile: 'leg_extension.svg' },
-  { name: 'Standing Calf Raise', bodyPart: 'Legs', equipment: 'machine', animationFile: 'calf_raise.svg' },
+  { name: 'Barbell Back Squat', bodyPart: 'Legs', equipment: 'barbell', animationFile: 'squat.gif' },
+  { name: 'Romanian Deadlift', bodyPart: 'Legs', equipment: 'barbell', animationFile: 'romanian_deadlift.gif' },
+  { name: 'Leg Press', bodyPart: 'Legs', equipment: 'machine', animationFile: 'leg_press.gif' },
+  { name: 'Bulgarian Split Squat', bodyPart: 'Legs', equipment: 'dumbbell', animationFile: 'split_squat.gif' },
+  { name: 'Lying Leg Curl', bodyPart: 'Legs', equipment: 'machine', animationFile: 'leg_curl.gif' },
+  { name: 'Leg Extension', bodyPart: 'Legs', equipment: 'machine', animationFile: 'leg_extension.gif' },
+  { name: 'Standing Calf Raise', bodyPart: 'Legs', equipment: 'machine', animationFile: 'calf_raise.gif' },
 
   // Arms - Biceps & Triceps
-  { name: 'Barbell Bicep Curl', bodyPart: 'Arms', equipment: 'barbell', animationFile: 'bicep_curl.svg' },
-  { name: 'Dumbbell Hammer Curl', bodyPart: 'Arms', equipment: 'dumbbell', animationFile: 'hammer_curl.svg' },
-  { name: 'Incline Dumbbell Curl', bodyPart: 'Arms', equipment: 'dumbbell', animationFile: 'incline_curl.svg' },
-  { name: 'Tricep Rope Pushdown', bodyPart: 'Arms', equipment: 'cable', animationFile: 'rope_pushdown.svg' },
-  { name: 'Skullcrushers', bodyPart: 'Arms', equipment: 'barbell', animationFile: 'skullcrushers.svg' },
-  { name: 'Overhead Dumbbell Tricep Extension', bodyPart: 'Arms', equipment: 'dumbbell', animationFile: 'overhead_tricep.svg' },
+  { name: 'Barbell Bicep Curl', bodyPart: 'Arms', equipment: 'barbell', animationFile: 'bicep_curl.gif' },
+  { name: 'Dumbbell Hammer Curl', bodyPart: 'Arms', equipment: 'dumbbell', animationFile: 'hammer_curl.gif' },
+  { name: 'Incline Dumbbell Curl', bodyPart: 'Arms', equipment: 'dumbbell', animationFile: 'incline_curl.gif' },
+  { name: 'Tricep Rope Pushdown', bodyPart: 'Arms', equipment: 'cable', animationFile: 'rope_pushdown.gif' },
+  { name: 'Skullcrushers', bodyPart: 'Arms', equipment: 'barbell', animationFile: 'skullcrushers.gif' },
+  { name: 'Overhead Dumbbell Tricep Extension', bodyPart: 'Arms', equipment: 'dumbbell', animationFile: 'overhead_tricep.gif' },
 
   // Core
-  { name: 'Hanging Leg Raise', bodyPart: 'Core', equipment: 'bodyweight', animationFile: 'leg_raise.svg' },
-  { name: 'Cable Woodchopper', bodyPart: 'Core', equipment: 'cable', animationFile: 'woodchopper.svg' },
-  { name: 'Plank', bodyPart: 'Core', equipment: 'bodyweight', animationFile: 'plank.svg' },
-  { name: 'Ab Wheel Rollout', bodyPart: 'Core', equipment: 'bodyweight', animationFile: 'ab_wheel.svg' },
+  { name: 'Hanging Leg Raise', bodyPart: 'Core', equipment: 'bodyweight', animationFile: 'leg_raise.gif' },
+  { name: 'Cable Woodchopper', bodyPart: 'Core', equipment: 'cable', animationFile: 'woodchopper.gif' },
+  { name: 'Plank', bodyPart: 'Core', equipment: 'bodyweight', animationFile: 'plank.gif' },
+  { name: 'Ab Wheel Rollout', bodyPart: 'Core', equipment: 'bodyweight', animationFile: 'ab_wheel.gif' },
 ];
+
+export async function syncStarterAnimations(): Promise<void> {
+  const starterMap = new Map(
+    STARTER_EXERCISES.filter(e => e.animationFile).map(e => [e.name, e.animationFile!])
+  );
+
+  const existing = await db.exercises.toArray();
+  const updates: Array<{ id: number; animationFile: string }> = [];
+
+  for (const ex of existing) {
+    if (!ex.id) continue;
+    const expected = starterMap.get(ex.name);
+    if (!expected) continue;
+
+    // Upgrade missing or legacy .svg placeholder animations without touching custom files
+    if (!ex.animationFile || ex.animationFile.endsWith('.svg')) {
+      if (ex.animationFile !== expected) {
+        updates.push({ id: ex.id, animationFile: expected });
+      }
+    }
+  }
+
+  if (updates.length > 0) {
+    await db.transaction('rw', db.exercises, async () => {
+      for (const u of updates) {
+        await db.exercises.update(u.id, { animationFile: u.animationFile });
+      }
+    });
+  }
+}
 
 export async function seedDatabase(force = false): Promise<void> {
   const count = await db.exercises.count();
-  if (count > 0 && !force) return;
+  if (count > 0 && !force) {
+    await syncStarterAnimations();
+    return;
+  }
 
   if (force) {
     await db.exercises.clear();

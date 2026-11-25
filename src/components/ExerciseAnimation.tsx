@@ -10,11 +10,13 @@ interface Props {
 }
 
 export function ExerciseAnimation({ animationFile, exerciseName, className = '' }: Props) {
-  const [loadError, setLoadError] = useState(false);
+  const [failedFile, setFailedFile] = useState<string | null>(null);
 
   // If no file specified, default to generic animation
   const fileToUse = animationFile || 'generic_exercise.svg';
+  const loadError = failedFile === fileToUse;
   const isVideo = fileToUse.endsWith('.mp4') || fileToUse.endsWith('.webm');
+  const isSvg = fileToUse.endsWith('.svg');
 
   if (loadError) {
     return (
@@ -31,28 +33,34 @@ export function ExerciseAnimation({ animationFile, exerciseName, className = '' 
 
   if (isVideo) {
     return (
-      <div className={`relative w-full overflow-hidden rounded-xl bg-zinc-900 ${className}`}>
+      <div className={`relative w-full overflow-hidden rounded-xl bg-white flex items-center justify-center ${className}`}>
         <video
+          key={fileToUse}
           src={`/animations/${fileToUse}`}
           autoPlay
           loop
           muted
           playsInline
-          className="w-full h-full object-cover"
-          onError={() => setLoadError(true)}
+          className="w-full h-full object-contain"
+          onError={() => setFailedFile(fileToUse)}
         />
       </div>
     );
   }
 
   return (
-    <div className={`relative w-full overflow-hidden rounded-xl bg-zinc-900 flex items-center justify-center ${className}`}>
+    <div
+      className={`relative w-full overflow-hidden rounded-xl flex items-center justify-center ${
+        isSvg ? 'bg-zinc-900' : 'bg-white p-2'
+      } ${className}`}
+    >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
+        key={fileToUse}
         src={`/animations/${fileToUse}`}
         alt={exerciseName}
         className="w-full h-full object-contain max-h-[220px]"
-        onError={() => setLoadError(true)}
+        onError={() => setFailedFile(fileToUse)}
       />
     </div>
   );

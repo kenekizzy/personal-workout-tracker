@@ -1,4 +1,8 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Workout Tracker (Offline-First Gym Log)
+
+An offline-first Progressive Web App (PWA) for logging workouts, progressive overload tracking, PR detection, and routine templates using Dexie.js (IndexedDB).
+
+> **For Engineers**: Read our beginner-friendly architectural walkthrough in [docs/FLOW_PROCESS.md](file:///c:/Users/Kizito/Documents/projects/workout-tracker/docs/FLOW_PROCESS.md) for data flow diagrams, database schemas, and step-by-step lifecycle flows.
 
 ## Getting Started
 

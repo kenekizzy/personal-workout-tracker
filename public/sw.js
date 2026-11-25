@@ -1,18 +1,9 @@
-const CACHE_NAME = 'workout-tracker-v1';
+const CACHE_NAME = 'workout-tracker-v2';
 
 const PRECACHE_URLS = [
   '/',
   '/manifest.webmanifest',
   '/icons/icon.svg',
-  '/animations/bench_press.svg',
-  '/animations/squat.svg',
-  '/animations/deadlift.svg',
-  '/animations/overhead_press.svg',
-  '/animations/pull_up.svg',
-  '/animations/dips.svg',
-  '/animations/bicep_curl.svg',
-  '/animations/barbell_row.svg',
-  '/animations/lateral_raise.svg',
   '/animations/generic_exercise.svg',
 ];
 
